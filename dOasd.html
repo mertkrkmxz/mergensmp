@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MergenSMP - Topluluk Sitesi</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --primary: #22c55e;
+      --primary-600: #16a34a;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --card: #1f2937;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; }
+
+    .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+    /* Navbar */
+    .navbar { position: sticky; top: 0; z-index: 50; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { font-weight: 800; letter-spacing: .3px; }
+    .brand span { color: var(--primary); }
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .nav-links a, .nav-links button { padding: 8px 12px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--text); }
+    .nav-links a:hover, .nav-links button:hover { background: var(--panel); border-color: var(--border); }
+    .nav-auth { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #22c55e33, #22c55e55); display: grid; place-items: center; font-size: 12px; color: var(--text); border: 1px solid var(--border); }
+
+    /* Hero */
+    .hero { padding: 40px 0 16px; border-bottom: 1px solid var(--border); background: radial-gradient(1200px 500px at 20% -40%, rgba(34,197,94,.08), transparent); }
+    .hero h1 { margin: 0 0 8px; font-size: 32px; }
+    .hero p { margin: 0; color: var(--muted); }
+
+    /* Sections */
+    section { padding: 28px 0; }
+    .section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-title h2 { margin: 0; font-size: 22px; }
+    .section-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+
+    /* Forms */
+    .grid { display: grid; gap: 12px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    @media (max-width: 700px) { .grid.two { grid-template-columns: 1fr; } }
+
+    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+
+    .btn { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: #111827; color: var(--text); }
+    .btn.primary { background: var(--primary); color: #052e16; border-color: transparent; font-weight: 700; }
+    .btn.primary:hover { background: var(--primary-600); color: #04230f; }
+    .btn.ghost { background: transparent; }
+    .btn.warn { background: #1f2937; border-color: var(--warning); color: var(--warning); }
+    .btn.danger { background: #1f2937; border-color: var(--danger); color: var(--danger); }
+
+    .note { color: var(--muted); font-size: 13px; }
+    .error { color: var(--danger); font-size: 14px; margin-top: 6px; }
+    .success { color: var(--primary); font-size: 14px; margin-top: 6px; }
+
+    /* Video list */
+    .video-upload { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .video-list { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-top: 16px; }
+    @media (max-width: 900px) { .video-list { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 640px) { .video-list { grid-template-columns: 1fr; } }
+
+    .video-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .video-card video { width: 100%; height: 220px; background: #000; object-fit: cover; }
+    .video-meta { padding: 10px 12px; display: grid; gap: 4px; border-top: 1px solid var(--border); }
+    .video-meta .title { font-weight: 700; }
+    .video-meta .by { color: var(--muted); font-size: 13px; }
+
+    /* Footer */
+    footer { padding: 24px 0 40px; color: var(--muted); text-align: center; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <div class="brand">Mergen<span>SMP</span></div>
+      <nav class="nav-links">
+        <a href="#videolar">Videolar</a>
+        <a href="#menu">Menü</a>
+        <a href="#rutbeler">Rütbeler</a>
+        <a href="#kayit">Kayıt Ol</a>
+        <a href="#giris">Giriş Yap</a>
+        <button id="logoutBtn" class="btn ghost hidden">Çıkış Yap</button>
+        <div id="navUser" class="nav-auth hidden">
+          <div class="avatar" id="navAvatar">U</div>
+          <div id="navName" class="note"></div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="container">
+      <h1>MergenSMP topluluk portalına hoş geldin!</h1>
+      <p>Videolarını paylaş, kuralları oku, rütbeleri keşfet. Kayıt ol ve aramıza katıl.</p>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- Videolar -->
+    <section id="videolar">
+      <div class="section-title">
+        <h2>Videolar</h2>
+        <span class="note">Maks. 1 GB video yüklenebilir</span>
+      </div>
+      <div class="section-card">
+        <div id="uploadArea" class="video-upload">
+          <input id="videoTitle" type="text" placeholder="Video başlığı (opsiyonel)" />
+          <input id="videoFile" type="file" accept="video/*" />
+          <button id="uploadBtn" class="btn primary">Yükle</button>
+          <span class="note">Destek: MP4, WebM, Ogg vb.</span>
+        </div>
+        <div id="uploadHint" class="note hidden">Video yüklemek için lütfen giriş yapın.</div>
+        <div id="uploadMsg" class="error hidden"></div>
+        <div id="videoList" class="video-list"></div>
+      </div>
+    </section>
+
+    <!-- Menü -->
+    <section id="menu">
+      <div class="section-title">
+        <h2>Menü</h2>
+      </div>
+      <div class="section-card grid" style="gap: 16px;">
+        <div>
+          <h3>Hoş geldin!</h3>
+          <p>MergenSMP; dostça, adil ve eğlenceli bir Minecraft SMP deneyimidir. Aşağıdaki kurallara uyarak topluluğu beraber daha iyi yapalım.</p>
+        </div>
+        <div>
+          <h3>Kurallar</h3>
+          <ul>
+            <li>Saygılı ol. Hakaret, ayrımcılık yok.</li>
+            <li>Hile, bug, haksız avantaj kesinlikle yasaktır.</li>
+            <li>Spam ve reklam yapma.</li>
+            <li>Başkasının emeğine saygı: Grief, hırsızlık yok.</li>
+            <li>Sunucu ekibi kararlarına uy.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rütbeler -->
+    <section id="rutbeler">
+      <div class="section-title">
+        <h2>Rütbeler</h2>
+      </div>
+      <div class="section-card grid two">
+        <div>
+          <h3>Gezgin</h3>
+          <p class="note">Yeni başlayanlar için temel rütbe.</p>
+          <ul>
+            <li>Temel komutlara erişim</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Usta</h3>
+          <p class="note">Aktif ve yardımcı oyuncular için.</p>
+          <ul>
+            <li>Ev kurma/taşıma kolaylıkları</li>
+            <li>Küçük kozmetik ayrıcalıklar</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Efsane</h3>
+          <p class="note">Topluluğa katkı sağlayanlar için.</p>
+          <ul>
+            <li>Kozmetik efektler</li>
+            <li>Ek sethome</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Destekçi</h3>
+          <p class="note">Sunucuyu destekleyen cömert oyuncular.</p>
+          <ul>
+            <li>Öne çıkan isim etiketi</li>
+            <li>Küçük sunucu içi ödüller</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kayıt Ol -->
+    <section id="kayit">
+      <div class="section-title">
+        <h2>Kayıt Ol</h2>
+      </div>
+      <div class="section-card">
+        <form id="registerForm" class="grid two">
+          <div>
+            <label for="fullName">İsim Soyisim</label>
+            <input id="fullName" type="text" required placeholder="İsim Soyisim" />
+          </div>
+          <div>
+            <label for="email">Gmail</label>
+            <input id="email" type="email" required placeholder="ornek@gmail.com" />
+          </div>
+          <div>
+            <label for="password">Şifre</label>
+            <input id="password" type="password" required placeholder="********" />
+          </div>
+          <div style="display:flex; align-items:end; gap:8px;">
+            <button class="btn primary" type="submit">Kayıt Ol</button>
+            <span class="note">Hesabın var mı? Aşağıdan giriş yap.</span>
+          </div>
+          <div id="registerMsg" class="error hidden"></div>
+          <div id="registerOk" class="success hidden"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Giriş Yap -->
+    <section id="giris">
+      <div class="section-title">
+        <h2>Giriş Yap</h2>
+      </div>
+      <div class="section-card">
+        <form id="loginForm" class="grid two">
+          <div>
+            <label for="loginEmail">Gmail</label>
+            <input id="loginEmail" type="email" required placeholder="ornek@gmail.com" />
+          </div>
+          <div>
+            <label for="loginPassword">Şifre</label>
+            <input id="loginPassword" type="password" required placeholder="********" />
+          </div>
+          <div style="grid-column: 1 / -1; display:flex; gap:8px; align-items:center;">
+            <button class="btn primary" type="submit">Giriş Yap</button>
+            <button id="loginToRegister" class="btn ghost" type="button">Kayıt Ol sayfasına git</button>
+          </div>
+          <div id="loginMsg" class="error hidden"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">© <span id="year"></span> MergenSMP — Topluluk tarafından, topluluk için.</div>
+  </footer>
+
+  <script>
+    // -----------------------
+    // IndexedDB Setup
+    // -----------------------
+    const DB_NAME = 'mergensmp';
+    const DB_VERSION = 1;
+    const USERS_STORE = 'users';
+    const VIDEOS_STORE = 'videos';
+    const ONE_GB = 1024 * 1024 * 1024; // 1,073,741,824 bytes
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(USERS_STORE)) {
+            const users = db.createObjectStore(USERS_STORE, { keyPath: 'email' });
+            users.createIndex('email', 'email', { unique: true });
+          }
+          if (!db.objectStoreNames.contains(VIDEOS_STORE)) {
+            const videos = db.createObjectStore(VIDEOS_STORE, { keyPath: 'id', autoIncrement: true });
+            videos.createIndex('createdAt', 'createdAt', { unique: false });
+          }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function withStore(storeName, mode, fn) {
+      return openDatabase().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, mode);
+        const store = tx.objectStore(storeName);
+        const result = fn(store);
+        tx.oncomplete = () => resolve(result);
+        tx.onerror = () => reject(tx.error);
+      }));
+    }
+
+    // -----------------------
+    // Utils
+    // -----------------------
+    function bufferToHex(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let hex = '';
+      for (let i = 0; i < bytes.length; i++) {
+        const h = bytes[i].toString(16).padStart(2, '0');
+        hex += h;
+      }
+      return hex;
+    }
+
+    async function hashPassword(plain) {
+      const data = new TextEncoder().encode(plain);
+      const digest = await crypto.subtle.digest('SHA-256', data);
+      return bufferToHex(digest);
+    }
+
+    function setHidden(el, hidden) { el.classList.toggle('hidden', hidden); }
+
+    function getCurrentUserEmail() {
+      return localStorage.getItem('currentUserEmail');
+    }
+
+    async function getUserByEmail(email) {
+      if (!email) return null;
+      return withStore(USERS_STORE, 'readonly', (store) => store.get(email)).then(() => new Promise((resolve, reject) => {
+        // Result is resolved in tx.oncomplete above; but we need to capture it here via request events
+      }));
+    }
+
+    // getUserByEmail rewritten to actually return value
+    async function fetchUser(email) {
+      if (!email) return null;
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(USERS_STORE, 'readonly');
+        const store = tx.objectStore(USERS_STORE);
+        const req = store.get(email);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function addUser(user) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(USERS_STORE, 'readwrite');
+        const store = tx.objectStore(USERS_STORE);
+        const req = store.add(user);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function addVideo(video) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(VIDEOS_STORE, 'readwrite');
+        const store = tx.objectStore(VIDEOS_STORE);
+        const req = store.add(video);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function getAllVideosNewestFirst() {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(VIDEOS_STORE, 'readonly');
+        const store = tx.objectStore(VIDEOS_STORE);
+        const index = store.index('createdAt');
+        const results = [];
+        // Open cursor backwards for newest first
+        index.openCursor(null, 'prev').onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            results.push(cursor.value);
+            cursor.continue();
+          } else {
+            resolve(results);
+          }
+        };
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    // -----------------------
+    // UI Elements
+    // -----------------------
+    const yearEl = document.getElementById('year');
+    const navUser = document.getElementById('navUser');
+    const navName = document.getElementById('navName');
+    const navAvatar = document.getElementById('navAvatar');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const uploadArea = document.getElementById('uploadArea');
+    const uploadHint = document.getElementById('uploadHint');
+    const uploadMsg = document.getElementById('uploadMsg');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const videoFile = document.getElementById('videoFile');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoList = document.getElementById('videoList');
+
+    const registerForm = document.getElementById('registerForm');
+    const registerMsg = document.getElementById('registerMsg');
+    const registerOk = document.getElementById('registerOk');
+
+    const loginForm = document.getElementById('loginForm');
+    const loginMsg = document.getElementById('loginMsg');
+    const loginToRegister = document.getElementById('loginToRegister');
+
+    // -----------------------
+    // Render helpers
+    // -----------------------
+    function initialsFromName(name) {
+      if (!name) return 'U';
+      const parts = name.trim().split(/\s+/);
+      const first = parts[0]?.[0] || '';
+      const last = parts[1]?.[0] || '';
+      return (first + last).toUpperCase() || 'U';
+    }
+
+    function formatDate(ts) {
+      const d = new Date(ts);
+      return d.toLocaleString('tr-TR');
+    }
+
+    async function refreshAuthUI() {
+      const email = getCurrentUserEmail();
+      const user = email ? await fetchUser(email) : null;
+      const loggedIn = !!user;
+
+      setHidden(navUser, !loggedIn);
+      setHidden(logoutBtn, !loggedIn);
+
+      if (loggedIn) {
+        navName.textContent = user.fullName + ' (' + user.email + ')';
+        navAvatar.textContent = initialsFromName(user.fullName);
+      }
+
+      // Toggle upload visibility
+      setHidden(uploadArea, !loggedIn);
+      setHidden(uploadHint, loggedIn);
+    }
+
+    function clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+    async function renderVideos() {
+      clearChildren(videoList);
+      const videos = await getAllVideosNewestFirst();
+      if (!videos.length) {
+        const empty = document.createElement('div');
+        empty.className = 'note';
+        empty.textContent = 'Henüz video yok. İlk yükleyen sen ol!';
+        videoList.appendChild(empty);
+        return;
+      }
+
+      for (const v of videos) {
+        const card = document.createElement('div');
+        card.className = 'video-card';
+
+        const vid = document.createElement('video');
+        vid.controls = true;
+        const url = URL.createObjectURL(v.blob);
+        vid.src = url;
+        vid.onloadeddata = () => {
+          // Release later when element removed; here we keep for list lifetime
+        };
+
+        const meta = document.createElement('div');
+        meta.className = 'video-meta';
+
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = v.title || 'Başlıksız Video';
+
+        const by = document.createElement('div');
+        by.className = 'by';
+        by.textContent = `Çeken: ${v.uploaderName} • ${formatDate(v.createdAt)} • ${(v.size/(1024*1024)).toFixed(1)} MB`;
+
+        meta.appendChild(title);
+        meta.appendChild(by);
+        card.appendChild(vid);
+        card.appendChild(meta);
+        videoList.appendChild(card);
+      }
+    }
+
+    // -----------------------
+    // Auth Handlers
+    // -----------------------
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setHidden(registerMsg, true); setHidden(registerOk, true);
+      registerMsg.textContent = '';
+      registerOk.textContent = '';
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+
+      if (!fullName || !email || !password) {
+        registerMsg.textContent = 'Lütfen tüm alanları doldurun.';
+        setHidden(registerMsg, false);
+        return;
+      }
+      if (!email.endsWith('@gmail.com')) {
+        registerMsg.textContent = 'Lütfen geçerli bir Gmail adresi girin (…@gmail.com).';
+        setHidden(registerMsg, false);
+        return;
+      }
+
+      const existing = await fetchUser(email);
+      if (existing) {
+        registerMsg.textContent = 'Bu Gmail ile zaten bir hesap var. Lütfen giriş yapın.';
+        setHidden(registerMsg, false);
+        return;
+      }
+
+      const passwordHash = await hashPassword(password);
+      const user = { email, fullName, passwordHash, createdAt: Date.now() };
+      try {
+        await addUser(user);
+        registerOk.textContent = 'Kayıt başarılı! Şimdi giriş yapabilirsiniz.';
+        setHidden(registerOk, false);
+        // Opsiyonel: otomatik giriş
+        localStorage.setItem('currentUserEmail', email);
+        await refreshAuthUI();
+      } catch (err) {
+        registerMsg.textContent = 'Kayıt sırasında bir hata oluştu.';
+        setHidden(registerMsg, false);
+      }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setHidden(loginMsg, true); loginMsg.textContent = '';
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const password = document.getElementById('loginPassword').value;
+
+      const user = await fetchUser(email);
+      if (!user) {
+        loginMsg.textContent = 'Kayıt bulunamadı. Lütfen önce kayıt olun.';
+        setHidden(loginMsg, false);
+        return;
+      }
+      const hash = await hashPassword(password);
+      if (hash !== user.passwordHash) {
+        loginMsg.textContent = 'Şifre hatalı.';
+        setHidden(loginMsg, false);
+        return;
+      }
+
+      localStorage.setItem('currentUserEmail', email);
+      await refreshAuthUI();
+      // Scroll to videos
+      location.hash = '#videolar';
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      localStorage.removeItem('currentUserEmail');
+      await refreshAuthUI();
+    });
+
+    loginToRegister.addEventListener('click', () => {
+      location.hash = '#kayit';
+    });
+
+    // -----------------------
+    // Upload Handler
+    // -----------------------
+    uploadBtn.addEventListener('click', async () => {
+      setHidden(uploadMsg, true); uploadMsg.textContent = '';
+      const email = getCurrentUserEmail();
+      const user = email ? await fetchUser(email) : null;
+      if (!user) {
+        uploadMsg.textContent = 'Yükleme için giriş yapmalısınız.';
+        setHidden(uploadMsg, false);
+        return;
+      }
+
+      const file = videoFile.files?.[0];
+      if (!file) {
+        uploadMsg.textContent = 'Lütfen bir video seçin.';
+        setHidden(uploadMsg, false);
+        return;
+      }
+      if (!file.type.startsWith('video/')) {
+        uploadMsg.textContent = 'Seçilen dosya bir video değil.';
+        setHidden(uploadMsg, false);
+        return;
+      }
+      if (file.size > ONE_GB) {
+        uploadMsg.textContent = 'Dosya boyutu 1 GB sınırını aşıyor.';
+        setHidden(uploadMsg, false);
+        return;
+      }
+
+      const title = (videoTitle.value || '').trim();
+      try {
+        const blob = file.slice(0, file.size, file.type);
+        await addVideo({
+          title,
+          blob,
+          size: file.size,
+          mime: file.type,
+          createdAt: Date.now(),
+          uploaderEmail: user.email,
+          uploaderName: user.fullName
+        });
+        videoTitle.value = '';
+        videoFile.value = '';
+        await renderVideos();
+      } catch (err) {
+        uploadMsg.textContent = 'Yükleme sırasında bir hata oluştu.';
+        setHidden(uploadMsg, false);
+      }
+    });
+
+    // -----------------------
+    // Init
+    // -----------------------
+    (async function init() {
+      yearEl.textContent = String(new Date().getFullYear());
+      await openDatabase();
+      await refreshAuthUI();
+      await renderVideos();
+    })();
+  </script>
+</body>
+</html>
